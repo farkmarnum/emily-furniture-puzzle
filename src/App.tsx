@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { DraggableBox } from "./DraggableBox";
 import { IDS, INIT_STATE, REPLAY_STEP_MS, SPEC, UNIT } from "./constants";
 import {
+  celebrate,
   deserializePoint,
   dist,
   getClosestPointOnLeftLine,
@@ -18,7 +19,21 @@ type Positions = Record<Id, Position>;
 function App() {
   const [positions, setPositions] = useState({ ...INIT_STATE });
   const [hist, setHist] = useState<Positions[]>([{ ...INIT_STATE }]);
+  
+  // Celebrate on success! 🎉
+  const hasSucceeded = useRef(false);
+  useEffect(() => {
+    if (
+      positions.sun.x === 1 &&
+      positions.sun.y === 3 &&
+      !hasSucceeded.current
+    ) {
+      hasSucceeded.current = true;
+      celebrate();
+    }
+  }, [positions]);
 
+  // Replay feature
   const [isReplaying, setIsReplaying] = useState(false);
   const replay = () => {
     setPositions(hist[0]);
@@ -41,10 +56,7 @@ function App() {
     }, REPLAY_STEP_MS);
   };
 
-  // const addToHistory = useCallback((newState: Positions) => {
   const addToHistory = ({ x, y, id }: Position & { id: Id }) => {
-    // if (isReplayingRef.current) return;
-
     const newState = { ...positions, [id]: { x, y } };
     const stateStr = JSON.stringify(newState);
 

@@ -1,3 +1,5 @@
+import party, { Circle } from "party-js";
+
 import { IDS, SPEC, UNIT } from "./constants";
 import { Box, Id, Point, Position } from "./types";
 
@@ -99,4 +101,10 @@ export const getOpenSquares = (
   });
 
   return validSquares;
+};
+
+export const celebrate = () => {
+  party.confetti(new Circle(window.innerWidth / 2, window.innerHeight / 2), {
+    count: 100,
+  });
 };
