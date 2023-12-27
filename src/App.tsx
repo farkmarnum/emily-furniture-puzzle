@@ -1,129 +1,123 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { DraggableBox } from "./DraggableBox";
-import { type Position, type Size, type Id, UNIT } from "./constants";
-import { getClosestPointOnLeftLine, getClosestPointOnTopLine } from "./utils";
+import { IDS, INIT_STATE, SPEC, UNIT } from "./constants";
+import {
+  deserializePoint,
+  dist,
+  getClosestPointOnLeftLine,
+  getClosestPointOnTopLine,
+  getOpenSquares,
+  scaleValues,
+  serializePoint,
+} from "./utils";
+import type { Id, Point, Position } from "./types";
 
-// prettier-ignore
-const SPEC: Record<Id, { size: Size; color: string; pos: Position }> = {
-  sun:   { size: { width: 2, height: 2 }, color: 'red',         pos: { x: 1, y: 0 } },
-  rect1: { size: { width: 1, height: 2 }, color: 'lightblue',   pos: { x: 0, y: 0 } },
-  rect2: { size: { width: 1, height: 2 }, color: 'lightblue',   pos: { x: 3, y: 0 } },
-  rect3: { size: { width: 2, height: 1 }, color: 'lightblue',   pos: { x: 1, y: 2 } },
-  rect4: { size: { width: 1, height: 2 }, color: 'lightblue',   pos: { x: 0, y: 3 } },
-  rect5: { size: { width: 1, height: 2 }, color: 'lightblue',   pos: { x: 3, y: 3 } },
-  dot1:  { size: { width: 1, height: 1 }, color: 'lightyellow', pos: { x: 1, y: 3 } },
-  dot2:  { size: { width: 1, height: 1 }, color: 'lightyellow', pos: { x: 1, y: 4 } },
-  dot3:  { size: { width: 1, height: 1 }, color: 'lightyellow', pos: { x: 2, y: 3 } },
-  dot4:  { size: { width: 1, height: 1 }, color: 'lightyellow', pos: { x: 2, y: 4 } },
-};
-
-const IDS = Object.keys(SPEC) as Id[];
-
-const scaleValues = <T extends Record<string, number>>(obj: T): T =>
-  Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, v * UNIT])) as T;
-
-const getInitState = () =>
-  (Object.keys(SPEC) as Id[]).reduce(
-    (acc, id) => ({ ...acc, [id]: SPEC[id].pos }),
-    {} as Record<Id, Position>
-  );
-
-const serialize = (x: number, y: number) => `${x}|${y}`;
-const deserialize = (s: string) => s.split("|").map((d) => parseInt(d, 10));
-
-const dist = ([x1, y1]: [number, number], [x2, y2]: [number, number]) =>
-  (x2 - x1) ** 2 + (y2 - y1) ** 2;
-
-const getOpenSquares = (positions: Record<Id, Position>, currentId: Id) => {
-  const squares = new Set<string>();
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 5; j++) {
-      squares.add(serialize(i, j));
-    }
-  }
-
-  for (const id of IDS) {
-    if (id === currentId) continue;
-
-    const { size } = SPEC[id];
-    const pos = positions[id];
-    const { x, y } = pos;
-
-    for (let w = 0; w < size.width; w++) {
-      for (let h = 0; h < size.height; h++) {
-        squares.delete(serialize(x + w, y + h));
-      }
-    }
-  }
-
-  const { size } = SPEC[currentId];
-  // ensure that each square has the other squares needed for the current block's shape
-  const validSquares = [...squares].filter((s) => {
-    const [x, y] = deserialize(s);
-    let valid = true;
-    const checks = [];
-    for (let w = 0; w < size.width; w++) {
-      for (let h = 0; h < size.height; h++) {
-        checks.push([x + w, y + h]);
-        if (!squares.has(serialize(x + w, y + h))) {
-          valid = false;
-        }
-      }
-    }
-    return valid;
-  });
-
-  return validSquares;
-};
+type Positions = Record<Id, Position>;
 
 function App() {
-  const [positions, setPositions] = useState(getInitState());
+  const [positions, setPositions] = useState({ ...INIT_STATE });
+  const [hist, setHist] = useState<Positions[]>([{ ...INIT_STATE }]);
 
-  const initState = getInitState();
-  const isInInitState = IDS.every(
-    (id) =>
-      positions[id].x === initState[id].x && positions[id].y === initState[id].y
-  );
+  const [isReplaying, setIsReplaying] = useState(false);
+  const replay = () => {
+    const INTERVAL_MS = 250;
 
+    setPositions(hist[0]);
+
+    // Turn on "replay" mode for transitions, but with a delay so the first position change doesn't have a transition.
+    setTimeout(() => {
+      setIsReplaying(true);
+    }, INTERVAL_MS / 2);
+
+    let i = 1;
+    const interval = setInterval(() => {
+      if (i >= hist.length) {
+        clearInterval(interval);
+        setIsReplaying(false);
+        return;
+      }
+
+      setPositions(hist[i]);
+      i++;
+    }, INTERVAL_MS);
+  };
+
+  // const addToHistory = useCallback((newState: Positions) => {
+  const addToHistory = ({ x, y, id }: Position & { id: Id }) => {
+    // if (isReplayingRef.current) return;
+
+    const newState = { ...positions, [id]: { x, y } };
+    const stateStr = JSON.stringify(newState);
+
+    // Check for loops / backtracking
+    for (let i = 0; i < hist.length; i++) {
+      if (JSON.stringify(hist[i]) === stateStr) {
+        setHist(hist.slice(0, i + 1));
+        return;
+      }
+    }
+
+    let newHist = [...hist, newState];
+
+    // Check for missing steps:
+    const prev = hist.slice(-1)[0][id];
+    if (x !== prev.x && y !== prev.y) {
+      // In this case, more than 1 move happened!
+      // To remedy, add an in-between move using the only other open square
+      const [openSquare] = getOpenSquares(positions, id)
+        .map((s) => deserializePoint(s))
+        .filter(
+          ([sx, sy]) =>
+            !(sx === x && sy === y) && !(sx === prev.x && sy === prev.y)
+        );
+
+      if (openSquare) {
+        const inbetweenState = {
+          ...positions,
+          [id]: { x: openSquare[0], y: openSquare[1] },
+        };
+        newHist = [...hist, inbetweenState, newState];
+      }
+    }
+
+    setHist(newHist);
+  };
+
+  const reset = () => {
+    setPositions({ ...INIT_STATE });
+    setHist([{ ...INIT_STATE }]);
+  };
+
+  // Callback to set position that limits the position to valid moves
   const setPosition = (id: Id, pos: Position) => {
-    let { x, y } = pos;
-    x /= UNIT;
-    y /= UNIT;
+    // Get our units back to 1 instead of UNIT
+    const { x, y } = scaleValues(1 / UNIT)(pos);
 
-    const { height: h, width: w } = SPEC[id].size;
-
-    // check for collisions with bounds
-    if (y < 0) y = 0;
-    if (y > 5 - h) y = 5 - h;
-    if (x < 0) x = 0;
-    if (x > 4 - w) x = 4 - w;
-
+    // Find the closest point along the available line segments (from the open squares)
     const openSquares = getOpenSquares(positions, id);
-
     const current = positions[id];
-
     let closestPoint = { x: current.x, y: current.y, d: Infinity };
     openSquares.forEach((s) => {
-      const [sx, sy] = deserialize(s);
-
-      const points: [number, number][] = [];
+      const [sx, sy] = deserializePoint(s);
+      const points: Point[] = [];
 
       // top line
-      if (openSquares.includes(serialize(sx + 1, sy))) {
+      if (openSquares.includes(serializePoint(sx + 1, sy))) {
         points.push(getClosestPointOnTopLine(sx, sy, x));
       }
 
       // left line
-      if (openSquares.includes(serialize(sx, sy + 1))) {
+      if (openSquares.includes(serializePoint(sx, sy + 1))) {
         points.push(getClosestPointOnLeftLine(sx, sy, y));
       }
 
       if (points.length === 0) {
-        // if no other options, just include the single point
+        // if no other options, just include the single point that's the top-left of the open square
         points.push([sx, sy]);
       }
 
+      // Determine the closest point
       let p;
       let d;
       if (points.length === 2) {
@@ -140,33 +134,46 @@ function App() {
         p = points[0];
         d = dist(points[0], [x, y]);
       }
-
       if (d < closestPoint.d) {
         closestPoint = { x: p[0], y: p[1], d };
       }
     });
 
-    setPositions((current) => ({ ...current, [id]: closestPoint }));
+    setPositions((current) => ({
+      ...current,
+      [id]: { x: closestPoint.x, y: closestPoint.y },
+    }));
   };
+
+  const stateHasChanged = IDS.some(
+    (id) =>
+      positions[id].x !== INIT_STATE[id].x ||
+      positions[id].y !== INIT_STATE[id].y
+  );
 
   useEffect(() => {
     const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = true; // legacy
+    };
+
+    if (stateHasChanged) {
+      window.addEventListener("beforeunload", warnBeforeLeaving);
     }
-    if (!isInInitState) {
-      window.addEventListener('beforeunload', warnBeforeLeaving);
-    }
+
     return () => {
-      if (!isInInitState) {
-        window.removeEventListener('beforeunload', warnBeforeLeaving);
+      if (stateHasChanged) {
+        window.removeEventListener("beforeunload", warnBeforeLeaving);
       }
-    }
-  }, [isInInitState])
+    };
+  }, [stateHasChanged]);
 
   return (
     <>
-      <div style={{ position: "relative", height: `${UNIT * 5}px` }}>
+      <div
+        style={{ position: "relative", height: `${UNIT * 5}px` }}
+        className={isReplaying ? "replay-mode" : ""}
+      >
         {IDS.map((id) => {
           const { size, color } = SPEC[id];
           const pos = positions[id];
@@ -174,9 +181,12 @@ function App() {
           return (
             <DraggableBox
               key={id}
-              size={scaleValues(size)}
-              position={scaleValues(pos)}
-              setPosition={(newPos) => setPosition(id, newPos)}
+              size={scaleValues(UNIT)(size)}
+              position={scaleValues(UNIT)(pos)}
+              setPosition={(newPos) => !isReplaying && setPosition(id, newPos)}
+              addToHistory={({ x, y }) =>
+                !isReplaying && addToHistory({ x, y, id })
+              }
               color={color}
               gridSize={UNIT}
             />
@@ -189,15 +199,29 @@ function App() {
           border: "none",
           background: "none",
           padding: "4px",
-          // margin: "16px 0 0",
           position: "absolute",
           bottom: "16px",
           left: "16px",
         }}
-        disabled={isInInitState}
-        onClick={() => setPositions(getInitState())}
+        disabled={!stateHasChanged || isReplaying}
+        onClick={reset}
       >
         Reset
+      </button>
+
+      <button
+        style={{
+          border: "none",
+          background: "none",
+          padding: "4px",
+          position: "absolute",
+          bottom: "16px",
+          left: "200px",
+        }}
+        disabled={hist.length <= 1 || isReplaying}
+        onClick={replay}
+      >
+        Replay
       </button>
     </>
   );
