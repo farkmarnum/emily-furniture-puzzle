@@ -85,16 +85,6 @@ function App() {
     x /= UNIT;
     y /= UNIT;
 
-    // snap X or Y
-    const xDiff = Math.abs(x - Math.round(x));
-    const yDiff = Math.abs(y - Math.round(y));
-    // TODO: add GAP for slack
-    if (xDiff > yDiff) {
-      y = Math.round(y);
-    } else {
-      x = Math.round(x);
-    }
-
     const { height: h, width: w } = SPEC[id].size;
 
     // check for collisions with bounds
