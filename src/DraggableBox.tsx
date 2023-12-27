@@ -1,8 +1,8 @@
 import { useRef } from "react";
-import Draggable, { type DraggableEventHandler } from "react-draggable";
-import { GAP, UNIT } from "./constants";
+import { DraggableCore, type DraggableEventHandler } from "react-draggable";
+import { type Position, GAP, UNIT } from "./constants";
+import { limitMagnitude } from "./utils";
 
-type Position = { x: number; y: number };
 export const DraggableBox = ({
   position,
   setPosition,
@@ -18,8 +18,13 @@ export const DraggableBox = ({
   const nodeRef = useRef(null);
 
   const handleDrag: DraggableEventHandler = (_e, data) => {
-    const { x, y } = data;
-    return setPosition({ x, y });
+    let { deltaX, deltaY } = data;
+    deltaX = limitMagnitude(deltaX);
+    deltaY = limitMagnitude(deltaY);
+    console.log(deltaX, deltaY)
+
+    const { x, y } = position;
+    return setPosition({ x: x + deltaX, y: y + deltaY });
   };
 
   const handleStop = () => {
@@ -30,25 +35,22 @@ export const DraggableBox = ({
   };
 
   const { width, height } = size;
+  const { x, y } = position;
 
   return (
-    <Draggable
-      nodeRef={nodeRef}
-      position={position}
-      onStop={handleStop}
-      onDrag={handleDrag}
-    >
+    <DraggableCore nodeRef={nodeRef} onStop={handleStop} onDrag={handleDrag}>
       <div
         ref={nodeRef}
         style={{
           position: "absolute",
-          top: `${UNIT * GAP}px`,
-          left: `${UNIT * GAP}px`,
+          top: y,
+          left: x,
+          padding: GAP,
           width: `${width - UNIT * GAP * 2}px`,
           height: `${height - UNIT * GAP * 2}px`,
           background: color,
         }}
       />
-    </Draggable>
+    </DraggableCore>
   );
 };
