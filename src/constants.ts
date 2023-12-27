@@ -1,4 +1,5 @@
-export const UNIT = 80;
+export const UNIT = window.innerWidth < 420 ? (window.innerWidth - 60) / 4 : 80;
+
 export const GAP = 0.03;
 
 export type Id =

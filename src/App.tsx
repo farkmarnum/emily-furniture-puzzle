@@ -144,7 +144,7 @@ function App() {
   };
 
   return (
-    <div style={{ margin: "30px", position: "relative" }}>
+    <div style={{ position: "relative" }}>
       {IDS.map((id) => {
         const { size, color } = SPEC[id];
         const pos = positions[id];
