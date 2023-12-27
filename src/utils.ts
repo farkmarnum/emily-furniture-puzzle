@@ -21,3 +21,19 @@ export const limitMagnitude = (delta: number) => {
   if (delta < -limit) return -limit;
   return delta;
 };
+
+export const getClosestPointOnTopLine = (sx: number, sy: number, x: number) => {
+  if (x < sx) return [sx, sy];
+  if (x > sx + 1) return [sx + 1, sy];
+  return [x, sy];
+};
+
+export const getClosestPointOnLeftLine = (
+  sx: number,
+  sy: number,
+  y: number
+) => {
+  if (y < sy) return [sx, sy];
+  if (y > sy + 1) return [sx, sy + 1];
+  return [sx, y];
+};

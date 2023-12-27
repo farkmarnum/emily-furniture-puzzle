@@ -2,7 +2,11 @@ import { useState } from "react";
 import "./App.css";
 import { DraggableBox } from "./DraggableBox";
 import { type Position, type Size, type Id, UNIT } from "./constants";
-import { hasOverlap } from "./utils";
+import {
+  getClosestPointOnLeftLine,
+  getClosestPointOnTopLine,
+  hasOverlap,
+} from "./utils";
 
 // prettier-ignore
 const SPEC: Record<Id, { size: Size; color: string; pos: Position }> = {
@@ -29,17 +33,33 @@ const getInitState = () =>
     {} as Record<Id, Position>
   );
 
+const getOpenSquares = (positions: Record<Id, Position>, currentId: Id) => {
+  const squares = new Set<string>();
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      squares.add(`${i}|${j}`);
+    }
+  }
+
+  for (const id of IDS) {
+    if (id === currentId) continue;
+
+    const { size } = SPEC[id];
+    const pos = positions[id];
+    const { x, y } = pos;
+
+    for (let w = 0; w < size.width; w++) {
+      for (let h = 0; h < size.height; h++) {
+        squares.delete(`${x + w}|${y + h}`);
+      }
+    }
+  }
+
+  return [...squares].map((s) => s.split("|").map((i) => parseInt(i, 10)));
+};
+
 function App() {
   const [positions, setPositions] = useState(getInitState());
-
-  const getBounds = (id: Id) => {
-    const { x: x1, y: y1 } = positions[id];
-    const { width, height } = SPEC[id].size;
-    const x2 = x1 + width;
-    const y2 = y1 + height;
-
-    return { x1, x2, y1, y2 };
-  };
 
   const setPosition = (id: Id, pos: Position) => {
     let { x, y } = pos;
@@ -57,19 +77,6 @@ function App() {
     }
 
     const { height: h, width: w } = SPEC[id].size;
-    const block = { x1: x, x2: x + w, y1: y, y2: y + h };
-
-    // check for collisions with other blocks
-    const overlappingBlocks = IDS.filter((otherId) => otherId !== id)
-      .map((otherId) => getBounds(otherId))
-      .filter((other) => hasOverlap(block, other));
-
-    overlappingBlocks.forEach((ob) => {
-      if (x > ob.x1 && x < ob.x2) x = ob.x2;
-      else if (x + w > ob.x1 && x + w < ob.x2) x = ob.x1 - w;
-      else if (y > ob.y1 && y < ob.y2) y = ob.y2;
-      else if (y + w > ob.y1 && y + h < ob.y2) y = ob.y1 - h;
-    });
 
     // check for collisions with bounds
     if (y < 0) y = 0;
@@ -77,14 +84,25 @@ function App() {
     if (x < 0) x = 0;
     if (x > 4 - w) x = 4 - w;
 
-    // const ranges = possibleRanges(positions, id);
-    // const  = ranges.some(
-    //   ([[x1, x2], [y1, y2]]) => x >= x1 && x <= x2 && y >= y1 && y <= y2
-    // );
+    const openSquares = getOpenSquares(positions, id);
+    console.log(JSON.stringify(openSquares));
 
-    // if (!isInRange) return false;
+    let closestPoint = { x: -1, y: -1, d: Infinity };
+    openSquares.forEach(([sx, sy]) => {
+      // top line
+      const p1 = getClosestPointOnTopLine(sx, sy, x);
+      const p2 = getClosestPointOnLeftLine(sx, sy, y);
 
-    setPositions((current) => ({ ...current, [id]: { x, y } }));
+      const d1 = (p1[0] - x) ** 2 + (p1[1] - y) ** 2;
+      const d2 = (p2[0] - x) ** 2 + (p2[1] - y) ** 2;
+
+      const [p, d] = d1 < d2 ? [p1, d1] : [p2, d2];
+      if (d < closestPoint.d) {
+        closestPoint = { x: p[0], y: p[1], d };
+      }
+    });
+
+    setPositions((current) => ({ ...current, [id]: closestPoint }));
     // return x === pos.x && y === pos.y;
   };
 
