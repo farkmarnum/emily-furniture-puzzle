@@ -13,7 +13,9 @@ export const hasOverlap = (a: Box, b: Box) => {
 };
 
 export const limitMagnitude = (delta: number) => {
-  const limit = UNIT / 2;
+  // By limiting the maximum delta to less than half the unit size, there's no way to "jump" over gaps
+  const limit = UNIT / 2 - 1;
+
   if (delta > limit) return limit;
   if (delta < -limit) return -limit;
   return delta;
