@@ -21,7 +21,6 @@ export const DraggableBox = ({
     let { deltaX, deltaY } = data;
     deltaX = limitMagnitude(deltaX);
     deltaY = limitMagnitude(deltaY);
-    // console.log(deltaX, deltaY)
 
     const { x, y } = position;
     return setPosition({ x: x + deltaX, y: y + deltaY });
