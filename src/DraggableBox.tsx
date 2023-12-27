@@ -1,13 +1,12 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Draggable, { type DraggableEventHandler } from "react-draggable";
+import { GAP, UNIT } from "./constants";
 
-type Axis = "x" | "y" | "both";
 type Position = { x: number; y: number };
 export const DraggableBox = ({
   position,
   setPosition,
   color,
-  gridSize,
   size,
 }: {
   position: Position;
@@ -16,36 +15,17 @@ export const DraggableBox = ({
   gridSize: number;
   size: { width: number; height: number };
 }) => {
-  // const isDragging = useRef(false);
-  // const [axis, setAxis] = useState<Axis>("both");
-
   const nodeRef = useRef(null);
 
   const handleDrag: DraggableEventHandler = (_e, data) => {
-    // if (!isDragging.current) {
-    //   const { deltaX, deltaY } = data;
-    //   if (deltaX !== 0 || deltaY !== 0) {
-    //     isDragging.current = true;
-    //     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    //       setAxis("x");
-    //     } else {
-    //       setAxis("y");
-    //     }
-    //   }
-    // }
-
-    let { x, y } = data;
-    // if (axis === "y") x = position.x;
-    // if (axis === "x") y = position.y;
+    const { x, y } = data;
     return setPosition({ x, y });
   };
 
   const handleStop = () => {
-    // isDragging.current = false;
-    // setAxis("both");
     let { x, y } = position;
-    x = Math.round(x / gridSize) * gridSize;
-    y = Math.round(y / gridSize) * gridSize;
+    x = Math.round(x / UNIT) * UNIT;
+    y = Math.round(y / UNIT) * UNIT;
     return setPosition({ x, y });
   };
 
@@ -57,16 +37,16 @@ export const DraggableBox = ({
       position={position}
       onStop={handleStop}
       onDrag={handleDrag}
-      // axis={axis}
     >
       <div
         ref={nodeRef}
         style={{
           position: "absolute",
-          width: `${width}px`,
-          height: `${height}px`,
+          top: `${UNIT * GAP}px`,
+          left: `${UNIT * GAP}px`,
+          width: `${width - UNIT * GAP * 2}px`,
+          height: `${height - UNIT * GAP * 2}px`,
           background: color,
-          border: "1px solid grey",
         }}
       />
     </Draggable>
