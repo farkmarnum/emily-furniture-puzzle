@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import { DraggableBox } from "./DraggableBox";
 import { type Position, type Size, type Id, UNIT } from "./constants";
@@ -80,6 +80,12 @@ const getOpenSquares = (positions: Record<Id, Position>, currentId: Id) => {
 function App() {
   const [positions, setPositions] = useState(getInitState());
 
+  const initState = getInitState();
+  const isInInitState = IDS.every(
+    (id) =>
+      positions[id].x === initState[id].x && positions[id].y === initState[id].y
+  );
+
   const setPosition = (id: Id, pos: Position) => {
     let { x, y } = pos;
     x /= UNIT;
@@ -143,24 +149,57 @@ function App() {
     setPositions((current) => ({ ...current, [id]: closestPoint }));
   };
 
-  return (
-    <div style={{ position: "relative" }}>
-      {IDS.map((id) => {
-        const { size, color } = SPEC[id];
-        const pos = positions[id];
+  useEffect(() => {
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = true; // legacy
+    }
+    if (!isInInitState) {
+      window.addEventListener('beforeunload', warnBeforeLeaving);
+    }
+    return () => {
+      if (!isInInitState) {
+        window.removeEventListener('beforeunload', warnBeforeLeaving);
+      }
+    }
+  }, [isInInitState])
 
-        return (
-          <DraggableBox
-            key={id}
-            size={scaleValues(size)}
-            position={scaleValues(pos)}
-            setPosition={(newPos) => setPosition(id, newPos)}
-            color={color}
-            gridSize={UNIT}
-          />
-        );
-      })}
-    </div>
+  return (
+    <>
+      <div style={{ position: "relative", height: `${UNIT * 5}px` }}>
+        {IDS.map((id) => {
+          const { size, color } = SPEC[id];
+          const pos = positions[id];
+
+          return (
+            <DraggableBox
+              key={id}
+              size={scaleValues(size)}
+              position={scaleValues(pos)}
+              setPosition={(newPos) => setPosition(id, newPos)}
+              color={color}
+              gridSize={UNIT}
+            />
+          );
+        })}
+      </div>
+
+      <button
+        style={{
+          border: "none",
+          background: "none",
+          padding: "4px",
+          // margin: "16px 0 0",
+          position: "absolute",
+          bottom: "16px",
+          left: "16px",
+        }}
+        disabled={isInInitState}
+        onClick={() => setPositions(getInitState())}
+      >
+        Reset
+      </button>
+    </>
   );
 }
 
