@@ -5,5 +5,5 @@
 }
 
 .replay-mode .draggable-box {
-  transition: ease-in-out 250ms all;
+  transition: ease-in-out var(--replay-step-duration) all;
 }

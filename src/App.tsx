@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { DraggableBox } from "./DraggableBox";
-import { IDS, INIT_STATE, SPEC, UNIT } from "./constants";
+import { IDS, INIT_STATE, REPLAY_STEP_MS, SPEC, UNIT } from "./constants";
 import {
   deserializePoint,
   dist,
@@ -21,14 +21,12 @@ function App() {
 
   const [isReplaying, setIsReplaying] = useState(false);
   const replay = () => {
-    const INTERVAL_MS = 250;
-
     setPositions(hist[0]);
 
     // Turn on "replay" mode for transitions, but with a delay so the first position change doesn't have a transition.
     setTimeout(() => {
       setIsReplaying(true);
-    }, INTERVAL_MS / 2);
+    }, REPLAY_STEP_MS / 2);
 
     let i = 1;
     const interval = setInterval(() => {
@@ -40,7 +38,7 @@ function App() {
 
       setPositions(hist[i]);
       i++;
-    }, INTERVAL_MS);
+    }, REPLAY_STEP_MS);
   };
 
   // const addToHistory = useCallback((newState: Positions) => {
@@ -194,35 +192,31 @@ function App() {
         })}
       </div>
 
-      <button
+      <div
         style={{
-          border: "none",
-          background: "none",
-          padding: "4px",
           position: "absolute",
           bottom: "16px",
           left: "16px",
+          gap: "16px",
+          display: "flex",
         }}
-        disabled={!stateHasChanged || isReplaying}
-        onClick={reset}
       >
-        Reset
-      </button>
+        <button
+          className="btn-text"
+          disabled={!stateHasChanged || isReplaying}
+          onClick={reset}
+        >
+          Reset
+        </button>
 
-      <button
-        style={{
-          border: "none",
-          background: "none",
-          padding: "4px",
-          position: "absolute",
-          bottom: "16px",
-          left: "200px",
-        }}
-        disabled={hist.length <= 1 || isReplaying}
-        onClick={replay}
-      >
-        Replay
-      </button>
+        <button
+          className="btn-text"
+          disabled={hist.length <= 1 || isReplaying}
+          onClick={replay}
+        >
+          Replay
+        </button>
+      </div>
     </>
   );
 }

@@ -24,3 +24,9 @@ export const INIT_STATE = (Object.keys(SPEC) as Id[]).reduce(
   (acc, id) => ({ ...acc, [id]: SPEC[id].pos }),
   {} as Record<Id, Position>
 );
+
+export const REPLAY_STEP_MS = 200;
+document.documentElement.style.setProperty(
+  "--replay-step-duration",
+  `${REPLAY_STEP_MS}ms`
+);
