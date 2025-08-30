@@ -1,10 +1,4 @@
 export type Id =
-  // | "sun"
-  // | "rect1"
-  // | "rect2"
-  // | "rect3"
-  // | "rect4"
-  // | "rect5"
   | "dot1"
   | "dot2"
   | "dot3"
