@@ -28,6 +28,9 @@ function App() {
   const [positions, setPositions] = useState({ ...INIT_STATE });
   const [hist, setHist] = useState<Positions[]>([{ ...INIT_STATE }]);
 
+  // landing state
+  const [isLanding, setIsLanding] = useState(true);
+
   const unit = useUnit();
 
   const [attempts, setAttempts] = useState(0);
@@ -187,6 +190,43 @@ function App() {
       }
     };
   }, [stateHasChanged]);
+
+  if (isLanding) {
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#b3ffff",
+          color: "black",
+          padding: "16px",
+          textAlign: "center",
+        }}
+      >
+        <h2 style={{ margin: 0 }}>Your next challenge:</h2>
+
+        <p style={{ margin: "32px 0", fontSize: "24px" }}>
+          Figure out the best way to position Malinda's couch in our new
+          apartment.
+        </p>
+
+        <button
+          style={{ backgroundColor: "white" }}
+          onClick={() => setIsLanding(false)}
+        >
+          Let's go
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
