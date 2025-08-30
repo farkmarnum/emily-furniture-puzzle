@@ -178,6 +178,7 @@ function App() {
             display: "block",
             width: "100%",
             maxWidth: "600px",
+            opacity: 0.5,
           }}
           src={bgSrc}
         />
@@ -188,8 +189,8 @@ function App() {
           position: "relative",
           height: `${unit * 6}px`,
           width: `${unit * 4}px`,
-          top: `${unit * 1.1}px`,
-          left: `${unit * 0.1}px`,
+          top: `${unit * 1.25}px`,
+          left: `${unit * 0.05}px`,
           margin: "0 auto",
         }}
       >
@@ -213,6 +214,35 @@ function App() {
             />
           );
         })}
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "70px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "90%",
+            maxWidth: "360px",
+            textAlign: "center",
+            background: "white",
+            boxShadow: "0 0 32px rgba(127,127,127,0.5),0 0 8px rgba(0,0,0,0.5)",
+            borderRadius: "8px",
+            padding: "9px 16px",
+            fontSize: "16px",
+            fontWeight: "bold",
+          }}
+        >
+          Where should we put Malinda's couch?
+        </div>
       </div>
     </>
   );

@@ -5,5 +5,5 @@ import react from "@vitejs/plugin-react-swc";
 export default defineConfig({
   plugins: [react()],
   // Deployed to GitHub Pages:
-  base: "/setting-sun-puzzle/",
+  base: "/emily-furniture-puzzle/",
 });

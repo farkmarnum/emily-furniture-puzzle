@@ -1,7 +1,7 @@
 import type { Id, Position, Size } from "./types";
 
 export const getUnit = () => {
-  const u = Math.min((window.innerWidth) / 5, 120);
+  const u = Math.min((window.innerWidth) * 0.19, 120);
   return u;
 };
 
@@ -16,9 +16,9 @@ export const SPEC: Record<Id, { size: Size; color: string; pos: Position }> = {
   // rect4: { size: { width: 1, height: 2 }, color: 'lightblue',   pos: { x: 0, y: 3 } },
   // rect5: { size: { width: 1, height: 2 }, color: 'lightblue',   pos: { x: 3, y: 3 } },
   dot1:  { size: { width: 1, height: 1 }, color: 'red', pos: { x: 0, y: 1 } },
-  dot2:  { size: { width: 1, height: 1 }, color: 'red', pos: { x: 1, y: 0 } },
-  dot3:  { size: { width: 1, height: 1 }, color: 'red', pos: { x: 2, y: 0 } },
-  dot4:  { size: { width: 1, height: 1 }, color: 'red', pos: { x: 3, y: 1 } },
+  dot2:  { size: { width: 1, height: 1 }, color: 'red', pos: { x: 0, y: 2 } },
+  dot3:  { size: { width: 1, height: 1 }, color: 'red', pos: { x: 0, y: 3 } },
+  dot4:  { size: { width: 1, height: 1 }, color: 'red', pos: { x: 0, y: 4 } },
   blocker1:  { size: { width: 1, height: 1 }, color: 'transparent', pos: { x: 0, y: 0 } },
   blocker2:  { size: { width: 1, height: 1 }, color: 'transparent', pos: { x: 3, y: 0 } },
 };
