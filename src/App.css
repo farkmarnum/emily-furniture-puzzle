@@ -1,9 +1,10 @@
 #root {
-  max-width: 420px;
-  margin: 0 auto;
-  padding: 30px;
-}
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100dvw;
+  height: 100dvh;
+  min-width: 320px;
 
-.replay-mode .draggable-box {
-  transition: ease-in-out var(--replay-step-duration) all;
+  position: relative;
 }

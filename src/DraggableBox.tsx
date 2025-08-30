@@ -1,8 +1,9 @@
 import { useRef } from "react";
 import { DraggableCore, type DraggableEventHandler } from "react-draggable";
-import { GAP, UNIT } from "./constants";
+import { GAP } from "./constants";
 import { limitMagnitude, scaleValues } from "./utils";
 import type { Position } from "./types";
+import useUnit from "./useUnit";
 
 export const DraggableBox = ({
   position,
@@ -29,13 +30,15 @@ export const DraggableBox = ({
     setPosition({ x: x + deltaX, y: y + deltaY });
   };
 
+  const unit = useUnit();
+
   const handleStop = () => {
     let { x, y } = position;
-    x = Math.round(x / UNIT) * UNIT;
-    y = Math.round(y / UNIT) * UNIT;
+    x = Math.round(x / unit) * unit;
+    y = Math.round(y / unit) * unit;
     const newPosition = { x, y };
 
-    addToHistory(scaleValues(1 / UNIT)(newPosition));
+    addToHistory(scaleValues(1 / unit)(newPosition));
     setPosition(newPosition);
   };
 
@@ -52,8 +55,8 @@ export const DraggableBox = ({
           top: y,
           left: x,
           padding: GAP,
-          width: `${width - UNIT * GAP * 2}px`,
-          height: `${height - UNIT * GAP * 2}px`,
+          width: `${width - unit * GAP * 2}px`,
+          height: `${height - unit * GAP * 2}px`,
           background: color,
         }}
       />

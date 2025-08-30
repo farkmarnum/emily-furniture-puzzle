@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import { DraggableBox } from "./DraggableBox";
-import { IDS, INIT_STATE, REPLAY_STEP_MS, SPEC, UNIT } from "./constants";
+import { IDS, INIT_STATE, SPEC, getUnit } from "./constants";
 import {
-  celebrate,
   deserializePoint,
   dist,
   getClosestPointOnLeftLine,
@@ -13,48 +12,29 @@ import {
   serializePoint,
 } from "./utils";
 import type { Id, Point, Position } from "./types";
+import bgSrc from "./assets/bg.png";
+import useUnit from "./useUnit";
 
 type Positions = Record<Id, Position>;
 
 function App() {
   const [positions, setPositions] = useState({ ...INIT_STATE });
   const [hist, setHist] = useState<Positions[]>([{ ...INIT_STATE }]);
-  
+
+  const unit = useUnit();
+
   // Celebrate on success! 🎉
-  const hasSucceeded = useRef(false);
-  useEffect(() => {
-    if (
-      positions.sun.x === 1 &&
-      positions.sun.y === 3 &&
-      !hasSucceeded.current
-    ) {
-      hasSucceeded.current = true;
-      celebrate();
-    }
-  }, [positions]);
-
-  // Replay feature
-  const [isReplaying, setIsReplaying] = useState(false);
-  const replay = () => {
-    setPositions(hist[0]);
-
-    // Turn on "replay" mode for transitions, but with a delay so the first position change doesn't have a transition.
-    setTimeout(() => {
-      setIsReplaying(true);
-    }, REPLAY_STEP_MS / 2);
-
-    let i = 1;
-    const interval = setInterval(() => {
-      if (i >= hist.length) {
-        clearInterval(interval);
-        setIsReplaying(false);
-        return;
-      }
-
-      setPositions(hist[i]);
-      i++;
-    }, REPLAY_STEP_MS);
-  };
+  // const hasSucceeded = useRef(false);
+  // useEffect(() => {
+  //   if (
+  //     positions.sun.x === 1 &&
+  //     positions.sun.y === 3 &&
+  //     !hasSucceeded.current
+  //   ) {
+  //     hasSucceeded.current = true;
+  //     celebrate();
+  //   }
+  // }, [positions]);
 
   const addToHistory = ({ x, y, id }: Position & { id: Id }) => {
     const newState = { ...positions, [id]: { x, y } };
@@ -94,15 +74,15 @@ function App() {
     setHist(newHist);
   };
 
-  const reset = () => {
-    setPositions({ ...INIT_STATE });
-    setHist([{ ...INIT_STATE }]);
-  };
+  // const reset = () => {
+  //   setPositions({ ...INIT_STATE });
+  //   setHist([{ ...INIT_STATE }]);
+  // };
 
   // Callback to set position that limits the position to valid moves
   const setPosition = (id: Id, pos: Position) => {
     // Get our units back to 1 instead of UNIT
-    const { x, y } = scaleValues(1 / UNIT)(pos);
+    const { x, y } = scaleValues(1 / getUnit())(pos);
 
     // Find the closest point along the available line segments (from the open squares)
     const openSquares = getOpenSquares(positions, id);
@@ -181,53 +161,58 @@ function App() {
   return (
     <>
       <div
-        style={{ position: "relative", height: `${UNIT * 5}px` }}
-        className={isReplaying ? "replay-mode" : ""}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "start",
+          justifyContent: "center",
+        }}
+      >
+        <img
+          style={{
+            display: "block",
+            width: "100%",
+            maxWidth: "600px",
+          }}
+          src={bgSrc}
+        />
+      </div>
+
+      <div
+        style={{
+          position: "relative",
+          height: `${unit * 6}px`,
+          width: `${unit * 4}px`,
+          top: `${unit * 1.1}px`,
+          left: `${unit * 0.1}px`,
+          margin: "0 auto",
+        }}
       >
         {IDS.map((id) => {
           const { size, color } = SPEC[id];
           const pos = positions[id];
 
+          const disabled = id === "blocker1" || id === "blocker2";
+
           return (
             <DraggableBox
               key={id}
-              size={scaleValues(UNIT)(size)}
-              position={scaleValues(UNIT)(pos)}
-              setPosition={(newPos) => !isReplaying && setPosition(id, newPos)}
+              size={scaleValues(unit)(size)}
+              position={scaleValues(unit)(pos)}
+              setPosition={(newPos) => !disabled && setPosition(id, newPos)}
               addToHistory={({ x, y }) =>
-                !isReplaying && addToHistory({ x, y, id })
+                !disabled && addToHistory({ x, y, id })
               }
               color={color}
-              gridSize={UNIT}
+              gridSize={unit}
             />
           );
         })}
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          bottom: "16px",
-          left: "16px",
-          gap: "16px",
-          display: "flex",
-        }}
-      >
-        <button
-          className="btn-text"
-          disabled={!stateHasChanged || isReplaying}
-          onClick={reset}
-        >
-          Reset
-        </button>
-
-        <button
-          className="btn-text"
-          disabled={hist.length <= 1 || isReplaying}
-          onClick={replay}
-        >
-          Replay
-        </button>
       </div>
     </>
   );

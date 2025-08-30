@@ -1,6 +1,6 @@
 import party, { Circle } from "party-js";
 
-import { IDS, SPEC, UNIT } from "./constants";
+import { IDS, SPEC, getUnit } from "./constants";
 import { Box, Id, Point, Position } from "./types";
 
 export const hasOverlap = (a: Box, b: Box) => {
@@ -15,7 +15,7 @@ export const hasOverlap = (a: Box, b: Box) => {
 
 export const limitMagnitude = (delta: number) => {
   // By limiting the maximum delta to less than half the unit size, there's no way to "jump" over gaps
-  const limit = UNIT / 2 - 1;
+  const limit = getUnit() / 2 - 1;
 
   if (delta > limit) return limit;
   if (delta < -limit) return -limit;
