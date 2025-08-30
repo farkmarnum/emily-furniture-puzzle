@@ -22,7 +22,7 @@ import useUnit from "./useUnit";
 
 type Positions = Record<Id, Position>;
 
-const REQUIRED_ATTEMPTS = 3;
+const REQUIRED_ATTEMPTS = 4;
 
 function App() {
   const [positions, setPositions] = useState({ ...INIT_STATE });
@@ -37,11 +37,13 @@ function App() {
   useEffect(() => {
     const p = positions;
     if (
-      attempts >= REQUIRED_ATTEMPTS && 
-      !hasSucceeded.current && 
-      p.dot1.x === p.dot3.x && 
-      p.dot1.y === p.dot4.y && 
-      p.dot4.x === p.dot2.x && 
+      attempts >= REQUIRED_ATTEMPTS &&
+      !hasSucceeded.current &&
+      p.dot1.x === p.dot3.x &&
+      p.dot1.y + 1 === p.dot3.y &&
+      p.dot1.y === p.dot4.y &&
+      p.dot1.x + 1 === p.dot4.x &&
+      p.dot4.x === p.dot2.x &&
       p.dot3.y === p.dot2.y
     ) {
       hasSucceeded.current = true;
@@ -50,13 +52,16 @@ function App() {
   }, [attempts, positions]);
 
   const submit = () => {
-    alert([
-      "Hmmm, that could be good... but maybe there's a better way?",
-      "Okay that might work... but what if there's an even better arrangement?",
-      "Oo I like tha- hey wait! someone wrote on malinda's couch!",
-    ][attempts]);
+    alert(
+      [
+        "Hmmm, that could be good... but maybe there's a better way?",
+        "Okay that might work... but what if there's an even better arrangement?",
+        "idk... have you really spent long enough pondering this?",
+        "Oo I like tha-- hey wait! someone wrote on malinda's couch!",
+      ][attempts]
+    );
     // wipe history to be just current state
-    setHist(c => c.slice(-1));
+    setHist((c) => c.slice(-1));
     // increment attempts
     setAttempts((c) => c + 1);
   };
@@ -203,7 +208,7 @@ function App() {
             display: "block",
             width: "100%",
             maxWidth: "525px",
-            opacity: 0.5,
+            opacity: 0.35,
           }}
           src={bgSrc}
         />
@@ -270,14 +275,11 @@ function App() {
             width: "calc(100% - 20px)",
             maxWidth: "400px",
             textAlign: "center",
-            background: "cyan",
-            color: "black",
-            boxShadow: "0 0 32px rgba(127,127,127,0.5),0 0 8px rgba(0,0,0,0.5)",
-            borderRadius: "8px",
             padding: "12px 16px",
             fontSize: "16px",
             fontWeight: "bold",
           }}
+          className="eye-catching"
         >
           Where should we put Malinda's couch?
         </div>
@@ -293,10 +295,15 @@ function App() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          visibility: hist.length > 1 && attempts < REQUIRED_ATTEMPTS ? "visible" : "hidden",
+          visibility:
+            hist.length > 1 && attempts < REQUIRED_ATTEMPTS
+              ? "visible"
+              : "hidden",
         }}
       >
-        <button onClick={submit}>Try this</button>
+        <button className="eye-catching" onClick={submit}>
+          Try this!
+        </button>
       </div>
     </>
   );

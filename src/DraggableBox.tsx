@@ -59,6 +59,10 @@ export const DraggableBox = ({
           height: `${height - unit * GAP * 2}px`,
           background,
           backgroundSize: background.includes("url") ? "contain" : undefined,
+          border:
+            background != "transparent"
+              ? "1px solid rgba(0,0,0,0.5)"
+              : undefined,
         }}
       />
     </DraggableCore>
