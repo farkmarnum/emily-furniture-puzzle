@@ -1,7 +1,7 @@
 import type { Id, Position, Size } from "./types";
 
 export const getUnit = () => {
-  const u = Math.min((window.innerWidth) * 0.19, 120);
+  const u = Math.min((window.innerWidth) * 0.19, 100);
   return u;
 };
 

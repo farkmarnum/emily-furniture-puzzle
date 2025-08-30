@@ -104,7 +104,12 @@ export const getOpenSquares = (
 };
 
 export const celebrate = () => {
-  party.confetti(new Circle(window.innerWidth / 2, window.innerHeight / 2), {
-    count: 100,
-  });
+  const fn = () => {
+    party.confetti(new Circle(window.innerWidth / 2, window.innerHeight / 2), {
+      count: 100,
+    });
+  };
+  fn();
+  setTimeout(fn, 100);
+  setTimeout(fn, 200);
 };

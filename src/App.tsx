@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { DraggableBox } from "./DraggableBox";
 import { IDS, INIT_STATE, SPEC, getUnit } from "./constants";
 import {
+  celebrate,
   deserializePoint,
   dist,
   getClosestPointOnLeftLine,
@@ -13,9 +14,15 @@ import {
 } from "./utils";
 import type { Id, Point, Position } from "./types";
 import bgSrc from "./assets/bg.png";
+import square1 from "./assets/square1.png";
+import square2 from "./assets/square2.png";
+import square3 from "./assets/square3.png";
+import square4 from "./assets/square4.png";
 import useUnit from "./useUnit";
 
 type Positions = Record<Id, Position>;
+
+const REQUIRED_ATTEMPTS = 3;
 
 function App() {
   const [positions, setPositions] = useState({ ...INIT_STATE });
@@ -23,18 +30,36 @@ function App() {
 
   const unit = useUnit();
 
+  const [attempts, setAttempts] = useState(0);
+
   // Celebrate on success! 🎉
-  // const hasSucceeded = useRef(false);
-  // useEffect(() => {
-  //   if (
-  //     positions.sun.x === 1 &&
-  //     positions.sun.y === 3 &&
-  //     !hasSucceeded.current
-  //   ) {
-  //     hasSucceeded.current = true;
-  //     celebrate();
-  //   }
-  // }, [positions]);
+  const hasSucceeded = useRef(false);
+  useEffect(() => {
+    const p = positions;
+    if (
+      attempts >= REQUIRED_ATTEMPTS && 
+      !hasSucceeded.current && 
+      p.dot1.x === p.dot3.x && 
+      p.dot1.y === p.dot4.y && 
+      p.dot4.x === p.dot2.x && 
+      p.dot3.y === p.dot2.y
+    ) {
+      hasSucceeded.current = true;
+      celebrate();
+    }
+  }, [attempts, positions]);
+
+  const submit = () => {
+    alert([
+      "Hmmm, that could be good... but maybe there's a better way?",
+      "Okay that might work... but what if there's an even better arrangement?",
+      "Oo I like tha- hey wait! someone wrote on malinda's couch!",
+    ][attempts]);
+    // wipe history to be just current state
+    setHist(c => c.slice(-1));
+    // increment attempts
+    setAttempts((c) => c + 1);
+  };
 
   const addToHistory = ({ x, y, id }: Position & { id: Id }) => {
     const newState = { ...positions, [id]: { x, y } };
@@ -177,7 +202,7 @@ function App() {
           style={{
             display: "block",
             width: "100%",
-            maxWidth: "600px",
+            maxWidth: "525px",
             opacity: 0.5,
           }}
           src={bgSrc}
@@ -200,6 +225,18 @@ function App() {
 
           const disabled = id === "blocker1" || id === "blocker2";
 
+          const background =
+            attempts < REQUIRED_ATTEMPTS || disabled
+              ? color
+              : `url(${
+                  {
+                    dot1: square1,
+                    dot4: square2,
+                    dot2: square3,
+                    dot3: square4,
+                  }[id]
+                })`;
+
           return (
             <DraggableBox
               key={id}
@@ -209,7 +246,7 @@ function App() {
               addToHistory={({ x, y }) =>
                 !disabled && addToHistory({ x, y, id })
               }
-              color={color}
+              background={background}
               gridSize={unit}
             />
           );
@@ -222,7 +259,7 @@ function App() {
           top: 0,
           left: 0,
           width: "100%",
-          height: "70px",
+          height: "80px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -230,19 +267,36 @@ function App() {
       >
         <div
           style={{
-            width: "90%",
-            maxWidth: "360px",
+            width: "calc(100% - 20px)",
+            maxWidth: "400px",
             textAlign: "center",
-            background: "white",
+            background: "cyan",
+            color: "black",
             boxShadow: "0 0 32px rgba(127,127,127,0.5),0 0 8px rgba(0,0,0,0.5)",
             borderRadius: "8px",
-            padding: "9px 16px",
+            padding: "12px 16px",
             fontSize: "16px",
             fontWeight: "bold",
           }}
         >
           Where should we put Malinda's couch?
         </div>
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          height: "80px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          visibility: hist.length > 1 && attempts < REQUIRED_ATTEMPTS ? "visible" : "hidden",
+        }}
+      >
+        <button onClick={submit}>Try this</button>
       </div>
     </>
   );

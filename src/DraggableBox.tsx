@@ -9,13 +9,13 @@ export const DraggableBox = ({
   position,
   setPosition,
   addToHistory,
-  color,
+  background,
   size,
 }: {
   position: Position;
   setPosition: (p: Position) => void;
   addToHistory: (p: Position) => void;
-  color: string;
+  background: string;
   gridSize: number;
   size: { width: number; height: number };
 }) => {
@@ -57,7 +57,8 @@ export const DraggableBox = ({
           padding: GAP,
           width: `${width - unit * GAP * 2}px`,
           height: `${height - unit * GAP * 2}px`,
-          background: color,
+          background,
+          backgroundSize: background.includes("url") ? "contain" : undefined,
         }}
       />
     </DraggableCore>
