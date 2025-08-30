@@ -5,7 +5,7 @@ export const getUnit = () => {
   return u;
 };
 
-export const GAP = 0.03;
+export const GAP = 0.01;
 
 // prettier-ignore
 export const SPEC: Record<Id, { size: Size; color: string; pos: Position }> = {
