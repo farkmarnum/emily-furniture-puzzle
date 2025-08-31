@@ -241,6 +241,7 @@ function App() {
           display: "flex",
           alignItems: "start",
           justifyContent: "center",
+          touchAction: "none",
         }}
       >
         <img
@@ -264,6 +265,18 @@ function App() {
           margin: "0 auto",
         }}
       >
+        {/* no touch events for background */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            touchAction: "none",
+          }}
+        />
+
         {IDS.map((id) => {
           const { size, color } = SPEC[id];
           const pos = positions[id];
